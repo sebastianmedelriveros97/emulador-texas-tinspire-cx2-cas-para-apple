@@ -1,0 +1,1 @@
+# emulador-texas-tinspire-cx2-cas-para-apple
