@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Nspire Lab</title>
+  <meta name="description" content="Emulador web de scripts Lua para TI-Nspire CX II CAS: prueba tus .tns en el iPad antes de pasarlos a la calculadora.">
+  <meta name="theme-color" content="#1b2229">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Nspire Lab">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">N</span>
+      <div>
+        <div class="brand-title">Nspire Lab</div>
+        <div class="brand-sub">Emulador Lua · CX II CAS</div>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="btn-open" class="btn" title="Abrir .lua o .tns">Abrir</button>
+      <select id="sel-example" class="btn" title="Ejemplos">
+        <option value="">Ejemplos…</option>
+      </select>
+      <button id="btn-run" class="btn primary" title="Ejecutar (⌘↵)">▶ Ejecutar</button>
+      <button id="btn-export" class="btn" title="Descargar .tns para la calculadora">⬇ .tns</button>
+      <button id="btn-share" class="btn" title="Compartir .tns (AirDrop, Archivos…)" hidden>Compartir</button>
+      <button id="btn-save-lua" class="btn" title="Descargar el .lua">⬇ .lua</button>
+    </div>
+    <input id="file-input" type="file" hidden>
+  </header>
+
+  <main class="layout">
+    <section class="device" aria-label="Calculadora">
+      <div class="device-body">
+        <div class="device-head">
+          <span class="device-brand">NSPIRE LAB</span>
+          <span id="doc-name" class="device-doc">sin documento</span>
+        </div>
+        <div class="bezel"><div id="screen"></div></div>
+        <div id="keypad" class="keypad"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <nav class="tabs" role="tablist">
+        <button class="tab active" data-tab="code">Código</button>
+        <button class="tab" data-tab="console">Consola <span id="console-badge" class="badge" hidden></span></button>
+        <button class="tab" data-tab="vars">Variables</button>
+        <button class="tab" data-tab="help">Ayuda</button>
+      </nav>
+
+      <div class="tab-body active" data-tab="code">
+        <div class="code-bar">
+          <input id="file-name" class="file-name" value="script.lua" spellcheck="false" aria-label="Nombre del archivo">
+          <span class="hint">Edita y pulsa ▶ (o ⌘↵)</span>
+        </div>
+        <div class="editor">
+          <pre id="gutter" class="gutter" aria-hidden="true">1</pre>
+          <textarea id="code" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" wrap="off"></textarea>
+        </div>
+      </div>
+
+      <div class="tab-body" data-tab="console">
+        <div class="code-bar">
+          <span class="hint">Salida de print() y errores</span>
+          <button id="btn-clear-console" class="btn small">Limpiar</button>
+        </div>
+        <div id="console" class="console"></div>
+      </div>
+
+      <div class="tab-body" data-tab="vars">
+        <div class="code-bar">
+          <span class="hint">Variables del documento (var.store / var.recall). Cambiarlas dispara on.varChange.</span>
+        </div>
+        <table class="vars"><tbody id="vars-body"></tbody></table>
+        <form id="var-add" class="var-add">
+          <input name="name" placeholder="nombre" required spellcheck="false" autocapitalize="off">
+          <input name="value" placeholder="valor" required spellcheck="false" autocapitalize="off">
+          <button class="btn small">Añadir</button>
+        </form>
+      </div>
+
+      <div class="tab-body help" data-tab="help">
+        <h3>Cómo usarlo</h3>
+        <ol>
+          <li><b>Abrir</b> un <code>.lua</code> o un <code>.tns</code> generado con Luna o con este emulador, o elegir un ejemplo.</li>
+          <li>Editar en <b>Código</b> y pulsar <b>▶ Ejecutar</b>.</li>
+          <li>Interactuar con el teclado táctil, tocando la pantalla, o con un teclado físico.</li>
+          <li><b>⬇ .tns</b> genera el documento listo para enviar a la calculadora con TI-Nspire Link / TI Connect.</li>
+        </ol>
+        <h3>Teclado físico</h3>
+        <p>Flechas, Enter, Esc, Tab (⇧Tab), Retroceso, Supr. <code>⌘M</code> abre el menú (toolpalette). <code>⌘↵</code> ejecuta el código.</p>
+        <h3>Qué se emula</h3>
+        <p>La API Lua de la calculadora: <code>on.*</code> (paint, charIn, arrowKey, enterKey, mouseDown, timer…), <code>gc</code> (texto, líneas, rectángulos, arcos, polígonos, imágenes, recortes), <code>platform</code>, <code>timer</code>, <code>var</code>, <code>toolpalette</code>, <code>image</code>, <code>D2Editor</code>, <code>cursor</code>, <code>class()</code> y <code>math.eval</code> (numérico).</p>
+        <h3>Diferencias con la calculadora</h3>
+        <ul>
+          <li>No incluye el sistema operativo de TI ni su CAS: <code>math.eval</code> evalúa expresiones numéricas, sin resultados simbólicos.</li>
+          <li>Las fuentes son del sistema, así que el ancho del texto puede variar unos píxeles.</li>
+          <li>La velocidad del iPad es muy superior: prueba siempre el rendimiento en la calculadora.</li>
+          <li>Los enteros de Lua son de 32 bits en el emulador; en la calculadora son números reales de 64 bits.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <script src="vendor/fengari-web.js"></script>
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
